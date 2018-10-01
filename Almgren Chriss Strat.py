@@ -22,7 +22,7 @@ eta = 2.5*1e-6
 epsilon = 0.0625
 
 sigma_stock = 0.95
-sigma_used = sigma_stock/10
+sigma_used = sigma_stock
 
 alpha = 0.02
 
@@ -75,6 +75,19 @@ shortfall = x0*s0- capture
 
 plt.hist(shortfall,bins=3*int(M**(1/3)),normed=True)
 plt.hist(capture,bins=3*int(M**(1/3)),normed=True)
+
+mean_shortfall = np.mean(shortfall)
+var_shortfalll = np.var(shortfall)
+
+utility = mean_shortfall+lamda*var_shortfalll
+
+print("Sigma of stock is {}, sigma used is {}, our utility result is {}".format(sigma_stock,sigma_used,utility))
+
+
+
+
+
+
 
 
 
