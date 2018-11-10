@@ -23,8 +23,11 @@ import matplotlib.pyplot as plt
 # Parameter for noise
 #var_e = 0.0005**2 # variance of noise
 
+
+#Generation of data using method in Almgren and Chriss with the concept of market noise
+# dt = 1s
 def Xt(x0,M=1,miu = 0.05,k = 5,alpha = 0.04,gamma = 0.5,rho =-0.5,T = 1.0/252,N = int(6.5*3600)+1):
-    t = T/N
+    t = T/(N-1)
     x = np.zeros((M,N))
     sigma4 = np.zeros((M,))
     sigma2 = np.zeros((M,))
@@ -50,8 +53,59 @@ def Xt(x0,M=1,miu = 0.05,k = 5,alpha = 0.04,gamma = 0.5,rho =-0.5,T = 1.0/252,N 
 #s = np.exp(x)
 #
 #plt.plot(n,s.T)
-
+# Real observation with noise
 def Yt(M,xt,var_e = 0.0005**2):
     N = xt.shape[1]
     epsilon = np.random.randn(M,N)*np.sqrt(var_e)
     return xt+epsilon
+
+
+# =============================================================================
+# #Generate data with a deterministe volatility
+# # Xt in incertitude region
+# =============================================================================
+def vol(T = 1.0/252,N = int(6.5*3600)+1):
+    vmax = 0.015
+    vmin = 0.005
+    n_range = np.arange(N)
+    vol = (vmax-vmin)/2*np.cos(n_range/(N-1)*2*np.pi-np.pi/8)+(vmax+vmin)/2
+    
+    return vol
+    
+# =============================================================================
+# Visulisation of volatility in a day (6.5 hours trading time)
+# vol = vol()
+# plt.figure()
+# plt.plot(vol)    
+# =============================================================================
+
+#output: array of dimension M*N M is the samples' number
+def Xt_IR(M,x0,alpha,eta,T = 1.0/252,N = int(6.5*3600)+1,L=1):
+    t = T/(N-1)
+    x = np.zeros((M,N))
+    sigma = vol()
+    x[:,0]=int(x0/alpha)*alpha
+    for i in range(M):
+        for j in range(1,N):
+            dw = npr.randn(1)*np.sqrt(t)
+            x[i,j]=x[i,j-1]+sigma[j]*x[i,j-1]*dw
+    for i in range(M):
+        current_price = x0
+        for j in range(1,N):
+            if x[i,j] <= current_price-alpha*(L-1/2+eta):
+                x[i,j] = current_price-alpha*L
+            elif x[i,j]>= current_price+alpha*(L-1/2+eta):
+                x[i,j] = current_price+alpha*L
+            else:
+                x[i,j] = current_price
+            current_price = x[i,j]
+    return x
+    
+# =============================================================================
+#     
+# xt = Xt_IR(1,100,alpha=0.05,eta=0.05)
+# plt.figure()
+# plt.plot(xt[0])
+# plt.show()
+#     
+# =============================================================================
